@@ -6,7 +6,8 @@
 CPlayer::CPlayer() :
 m_Mesh(),
 m_Pos(0.0f,0.0f,0.0f),
-m_RotZ(0.0f){
+m_RotZ(0.0f),
+m_Speed(0.0f){
 }
 
 /**
@@ -33,6 +34,7 @@ bool CPlayer::Load(void){
 void CPlayer::Initialize(void){
 	m_Pos = Vector3(0.0f, 0.0f, -FIELD_HALF_Z + 2.0f);
 	m_RotZ = 0;
+	m_Speed = 0.1f;
 }
 
 /**
@@ -41,27 +43,41 @@ void CPlayer::Initialize(void){
 void CPlayer::Update(void){
 	//回転方向
 	float Roll = 0;
+	float RotSpeed = MOF_ToRadian(10);
+
+	//ダッシュ
+	if (g_pInput->IsKeyHold(MOFKEY_LSHIFT))
+	{
+		m_Speed = 0.3f;
+		RotSpeed = MOF_ToRadian(20);
+	}
+	else
+	{
+		m_Speed = 0.1f;
+		RotSpeed = MOF_ToRadian(10);
+	}
+	
 	//キーボードでの移動
 	if (g_pInput->IsKeyHold(MOFKEY_LEFT))
 	{
-		m_Pos.x = max(m_Pos.x - PLAYER_SPEED, -FIELD_HALF_X);
+		m_Pos.x = max(m_Pos.x - m_Speed, -FIELD_HALF_X);
 		Roll -= MOF_MATH_PI;
 	}
 	if (g_pInput->IsKeyHold(MOFKEY_RIGHT))
 	{
-		m_Pos.x = min(m_Pos.x + PLAYER_SPEED, FIELD_HALF_X);
+		m_Pos.x = min(m_Pos.x + m_Speed, FIELD_HALF_X);
 		Roll += MOF_MATH_PI;
 	}
 	if (g_pInput->IsKeyHold(MOFKEY_UP))
 	{
-		m_Pos.z = min(m_Pos.z + PLAYER_SPEED, FIELD_HALF_Z);
+		m_Pos.z = min(m_Pos.z + m_Speed, FIELD_HALF_Z);
 	}
 	if (g_pInput->IsKeyHold(MOFKEY_DOWN))
 	{
-		m_Pos.z = max(m_Pos.z - PLAYER_SPEED, -FIELD_HALF_Z);
+		m_Pos.z = max(m_Pos.z - m_Speed, -FIELD_HALF_Z);
 	}
 	//回転
-	float RotSpeed = MOF_ToRadian(10);
+	
 	if (Roll == 0)
 	{
 		RotSpeed = min(abs(m_RotZ) * 0.1f, RotSpeed);
@@ -92,6 +108,9 @@ void CPlayer::RenderDebugText(void){
 	// 位置の描画
 	CGraphicsUtilities::RenderString(10,40,MOF_XRGB(0,0,0),
 			"プレイヤー位置 X : %.1f , Y : %.1f , Z : %.1f",m_Pos.x,m_Pos.y,m_Pos.z);
+	CGraphicsUtilities::RenderString(10, 70, MOF_XRGB(0, 0, 0),
+		"スピード : %.1f ",m_Speed);
+
 }
 
 /**

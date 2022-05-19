@@ -2,14 +2,14 @@
 
 #include "GameDefine.h"
 
-// ˆÚ“®‘¬“x
-#define PLAYER_SPEED		(0.1f)
 
 class CPlayer{
 private:
 	CMeshContainer	m_Mesh;
 	CVector3		m_Pos;
 	float			m_RotZ;
+	// ˆÚ“®‘¬“x
+	float m_Speed = 0.1f;
 public:
 	CPlayer();
 	~CPlayer();

@@ -10,6 +10,7 @@
 //INCLUDE
 #include	"GameApp.h"
 #include	"Player.h"
+#include	"Stage.h"
 
 //カメラ
 CCamera	gCamera;
@@ -17,8 +18,14 @@ CCamera	gCamera;
 CDirectionalLight	gLight;
 //プレイヤー
 CPlayer	gPlayer;
+//ステージ
+CStage	gStage;
 //デバッグ表示フラグ
 bool	gbDebug = false;
+
+CVector3 cpos;
+CVector3 tpos;
+CVector3 vup;
 
 /*************************************************************************//*!
 		@brief			アプリケーションの初期化
@@ -31,8 +38,14 @@ MofBool CGameApp::Initialize(void){
 	//リソース配置ディレクトリの設定
 	CUtilities::SetCurrentDirectory("Resource");
 	//カメラ初期化
+	cpos = Vector3(0, 6.0f, -17.0f);
+	tpos = Vector3(0, 0, -10);
+	vup = Vector3(0, 1, 0);
 	gCamera.SetViewPort();
-	gCamera.LookAt(Vector3(0, 6.0f, -17.0f), Vector3(0, 0, -10), Vector3(0, 1, 0));
+	gCamera.LookAt(
+		cpos,
+		tpos, 
+		vup);
 	gCamera.PerspectiveFov(MOF_ToRadian(60.0f), 1024.0f / 768.0f, 0.01f, 1000.0f);
 	CGraphicsUtilities::SetCamera(&gCamera);
 
@@ -45,8 +58,10 @@ MofBool CGameApp::Initialize(void){
 
 	//プレイヤー素材読込
 	gPlayer.Load();
+	gStage.Load();
 	//プレイヤーの状態初期化
 	gPlayer.Initialize();
+	gStage.Initialize();
 	
 	return TRUE;
 }
@@ -60,6 +75,10 @@ MofBool CGameApp::Initialize(void){
 MofBool CGameApp::Update(void){
 	//キーの更新
 	g_pInput->RefreshKey();
+
+	//ステージ更新
+	gStage.Update();
+
 	//プレイヤーの更新
 	gPlayer.Update();
 	//デバッグ表示の切り替え
@@ -70,11 +89,13 @@ MofBool CGameApp::Update(void){
 
 	//プレイヤーの動きに併せてカメラを動かす
 	float posX = gPlayer.GetPosition().x * 0.4f;
-	CVector3 cpos = gCamera.GetViewPosition();
-	CVector3 tpos = gCamera.GetTargetPosition();
-	CVector3 vup = CVector3(0, 1, 0);
+	cpos = gCamera.GetViewPosition();
+	tpos = gCamera.GetTargetPosition();
+	vup = CVector3(0, 1, 0);
+	
 	cpos.x = posX;
 	tpos.x = posX;
+	vup.RotationZ(gPlayer.GetPosition().x / FIELD_HALF_X * MOF_ToRadian(10.0f));
 	gCamera.LookAt(cpos, tpos, vup);
 	gCamera.Update();
 	
@@ -97,6 +118,8 @@ MofBool CGameApp::Render(void){
 	//深度バッファ有効化
 	g_pGraphics->SetDepthEnable(TRUE);
 
+	//ステージ描画
+	gStage.Render();
 	//プレイヤー描画
 	gPlayer.Render();
 
@@ -115,6 +138,8 @@ MofBool CGameApp::Render(void){
 	//2Dデバッグ描画
 	if (gbDebug)
 	{
+		//ステージのデバッグ文字描画
+		gStage.RenderDebugText();
 		//プレイヤーのデバッグ文字描画
 		gPlayer.RenderDebugText();
 	}
@@ -132,5 +157,6 @@ MofBool CGameApp::Render(void){
 *//**************************************************************************/
 MofBool CGameApp::Release(void){
 	gPlayer.Release();
+	gStage.Release();
 	return TRUE;
 }
